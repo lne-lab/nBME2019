@@ -1,0 +1,52 @@
+// Sub-file of main.hoc for loading and reading the parameter file
+/* In this file, the fiber diameter and corresponding parameter are loaded in lists */
+
+// File holder
+objectvar fileHolder
+
+// Param lists
+objectvar fibDiams, nnodes, ntnlengths, ndiams
+
+// Open and read all par_XXX file created. Need to provide the known number of values par paremter (constant)
+nValues = 12
+fileHolder = new File()
+
+// Fiber Diameter
+fibDiams = new Vector(nValues)
+{fileHolder.ropen("par_fibDiam.txt")}
+for i = 0,nValues-1 {
+
+	fibDiams.x[i] = fileHolder.scanvar()
+}
+
+// Number of nodes
+nnodes = new Vector(nValues)
+{fileHolder.ropen("par_nnodes.txt")}
+for i = 0,nValues-1 {
+	nnodes.x[i] = fileHolder.scanvar()
+}
+
+// Node to Node length
+ntnlengths = new Vector(nValues)
+{fileHolder.ropen("par_ntnlengths.txt")}
+for i = 0,nValues-1 {
+	ntnlengths.x[i] = fileHolder.scanvar()
+}
+
+//  Node diameter
+ndiams = new Vector(nValues)
+{fileHolder.ropen("par_ndiam.txt")}
+for i = 0,nValues-1 {
+	ndiams.x[i] = fileHolder.scanvar()
+	//printf("ndiams = %.2f \n", ndiams.x[i])
+}
+
+objectvar V
+strdef potentialFileName
+V = new Vector(nnodes.x[0])
+sprint(potentialFileName,"v_%d.txt",0)
+{fileHolder.ropen(potentialFileName)}
+for i = 0,nnodes.x[0]-1 {
+	V.x[i] = fileHolder.scanvar()
+}
+	

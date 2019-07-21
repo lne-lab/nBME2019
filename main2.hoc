@@ -1,0 +1,109 @@
+// Main File for the batch processing of a single axon with different fiber diameter
+/* Axon is a location Y and Z of the transverse plane */
+load_file("noload.hoc")
+START = 1
+DUR = 0.15
+AMP = 50
+// File Parameter reading
+xopen("param_reading.hoc")
+
+// Once all parameter are loaded, setup the environment
+xopen("setup.hoc")
+
+objref actionPotential, recvbeg, recvend
+actionPotential = new Vector(nValues)
+recvbeg = new Vector()
+recvend = new Vector()
+
+objref savdata
+savdata = new File()
+
+objref vec
+	vec=new Vector(12)
+	vec.x[0]=0
+	vec.x[1]=11
+	for vind=2,11 {vec.x[vind]=vind-1}
+
+objref tempmatrix
+
+proc batchrun() {local i
+	tstop = $1
+	AMP = $2
+	
+	
+	for i = 0,1 {
+		setParam(vec.x[i])
+		
+		recvbeg.record(&axons[0].node[0].v(0.5))
+		recvend.record(&axons[0].node[axons[0].nnode-1].v(0.5))
+		
+		run()
+		
+		actionPotential.x[vec.x[i]] = recvbeg.indwhere(">", 0) != -1 && recvend.indwhere(">", 0) != -1
+		}
+
+    if (actionPotential.x[0]==1 && actionPotential.x[11]==1) {
+		for i=2,nValues-1 { actionPotential.x[vec.x[i]]=1}}
+		
+	if (actionPotential.x[0]==0 && actionPotential.x[11]==0) {
+		for i=2,nValues-1 { actionPotential.x[vec.x[i]]=0}}
+		
+	if (actionPotential.x[0]==0 && actionPotential.x[11]==1) {
+		for i=2,nValues-1 { setParam(vec.x[i])
+		
+		recvbeg.record(&axons[0].node[0].v(0.5))
+		recvend.record(&axons[0].node[axons[0].nnode-1].v(0.5))
+		
+		run()
+		
+		actionPotential.x[vec.x[i]] = recvbeg.indwhere(">", 0) != -1 && recvend.indwhere(">", 0) != -1 
+		if (actionPotential.x[vec.x[i]]==1){break}}
+		for m=i,nValues-1 {actionPotential.x[vec.x[m]]=1}}
+		
+	if (actionPotential.x[0]==1 && actionPotential.x[11]==0) {
+		for i=2,nValues-1 { setParam(vec.x[i])
+		
+		recvbeg.record(&axons[0].node[0].v(0.5))
+		recvend.record(&axons[0].node[axons[0].nnode-1].v(0.5))
+		
+		run()
+		
+		actionPotential.x[vec.x[i]] = recvbeg.indwhere(">", 0) != -1 && recvend.indwhere(">", 0) != -1 
+		if (actionPotential.x[vec.x[i]]==0){break}}
+		for m=i,nValues-1 {actionPotential.x[vec.x[m]]=0}} 
+	
+
+	
+	savdata.wopen("run.dat")
+
+		 
+/* 	savdata.printf("AP? \n")
+	
+	tempmatrix = new Matrix()
+	tempmatrix.resize(actionPotential.size(),1)
+	tempmatrix.setcol(0, actionPotential)
+	tempmatrix.fprint(savdata, " %g") */
+	actionPotential.printf(savdata)
+	savdata.close()
+}
+
+proc setParam(){
+	axons[0] = new opticNerveAxon(ndiams.x[$1],nnodes.x[$1],fibDiams.x[$1],ntnlengths.x[$1])
+	V = new Vector(axons[0].nnode)
+	sprint(potentialFileName,"v_%d.txt",$1)
+	{fileHolder.ropen(potentialFileName)}
+	print potentialFileName
+	for j = 0,axons[0].nnode-1 {
+		a = fileHolder.scanvar()
+		V.x[j] = a
+	} 
+}
+
+/*proc reloadPotentials(){
+	V = new Vector(nnodes.x[0])
+	sprint(potentialFileName,"v_%d.txt",0)
+	{fileHolder.ropen(potentialFileName)}
+	for i = 0,nnodes.x[0]-1 {
+		V.x[i] = fileHolder.scanvar()
+	}
+}*/

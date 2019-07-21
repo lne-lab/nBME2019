@@ -1,0 +1,76 @@
+// Axon template
+/* This axon template is used to create an axon with an alternating (node-internode-node) pattern, inserting the 5 currents into the node of ranvier
+It requires several parameters */
+
+begintemplate opticNerveAxon
+public node,inter,nnode
+create node[1],inter[1]
+
+// create the axons
+/* Parameters:
+	- $1 = node diameter
+	- $2 = number of nodes
+	- $3 = fiber diameter
+	- $4 = node to node distance
+
+*/
+
+
+proc init(){ local nodeDiam, fiberDiam, ntnLength
+	nodeDiam = $1
+	nnode = $2
+	fiberDiam = $3
+	ntnLength = $4
+	
+	create node[nnode],inter[nnode-1]
+	
+	forsec "node"{
+		// Geometry
+		nseg = 11
+		diam = nodeDiam 		// µm
+		L = 1			// µm
+		Ra = 70		// ohm cm
+		cm = 2 			// µF/cm2
+		
+		// Biophysic
+		insert extracellular xraxial=1e9 xg=1e9 xc=0
+ 		insert leak{ 
+			g_leak = 0.01
+			e_leak = -72.133802969161930	
+		}
+		insert ac{
+			ga_ac = 0.25
+		}
+		
+		insert nac{
+			gna_nac = 0.75
+		}
+
+		insert sc{
+			gs_sc = 0.012
+		}
+
+		insert pc{
+			gp_pc = 0.001
+		}
+		
+		// Sodium/Potassium Concentration
+		ena = 48
+		ek = -98 
+	}
+
+	forsec "inter"{
+		nseg = 11
+		diam = fiberDiam
+		L = ntnLength - 1
+		Ra = 70
+		cm = 0
+		
+		insert extracellular xraxial=1e9 xg=1e9 xc=0 e_extracellular=0
+	}
+
+	// connect
+	for j=0, nnode-2 connect inter[j](0), node[j](1)
+	for j=1, nnode-1 connect node[j](0), inter[j-1](1)
+}
+endtemplate opticNerveAxon

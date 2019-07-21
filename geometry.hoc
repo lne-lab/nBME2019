@@ -1,0 +1,7 @@
+// Sub-file of setup.hoc to create the geometry
+/* The geometry is generated for each i */
+naxons = 1
+objectvar axons[naxons]
+for i = 0,naxons-1{
+	axons[i] = new opticNerveAxon(ndiams.x[0],nnodes.x[0],fibDiams.x[0],ntnlengths.x[0])
+}  

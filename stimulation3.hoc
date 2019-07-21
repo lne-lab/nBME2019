@@ -1,0 +1,71 @@
+// Sub-file of setup.hoc to create the extracelular simulation
+/* This file create a single pulse starting at START, of duration DUR and with a stimulation current of AMP [µA]*/
+
+
+// Set the extracelular potential to be equal to the distribution from COMSOL
+
+proc setPotential(){
+	for j = 0, naxons-1{
+		for i = 0,axons[j].nnode-1{
+			axons[j].node[i].e_extracellular = V.x[i]*AMP
+		}
+	}
+}
+
+//Set the balancing charge
+proc setPotentialPost(){
+for j = 0, naxons-1{
+		for i = 0,axons[j].nnode-1{
+			axons[j].node[i].e_extracellular = V.x[i]*-0.2*AMP
+		}
+	}
+}
+
+
+// Set extracellular to 0 (stimulation off)
+proc setPotential0(){
+	for j = 0, naxons-1{
+		for i = 0, axons[j].nnode-1{
+			axons[j].node[i].e_extracellular = 0
+		}
+	}
+}
+
+// Handle the switching of ON/OFF
+objref fih
+fih = new FInitializeHandler("initi()")
+
+proc initi() {
+	STIMON = 0
+	cvode.event(START, "seti()")
+}
+
+proc seti() {
+	
+
+if (STIMON==0) {
+STIMON=1   
+cvode.event(t + DEL, "setPotential()")
+cvode.event(t + DEL + DUR, "setPotentialPost()") 
+cvode.event(t+DEL + DUR+ DURP,"setPotential0()")
+cvode.event(t + 2*DEL + DUR + DURP, "setPotential()")
+cvode.event(t + 2*DEL + 2*DUR + DURP, "setPotentialPost()") 
+cvode.event(t+ 2*DEL + 2*DUR + 2*DURP,"setPotential0()")
+cvode.event(t + 3*DEL + 2*DUR + 2*DURP, "setPotential()")
+cvode.event(t + 3*DEL + 3*DUR + 2*DURP, "setPotentialPost()") 
+cvode.event(t+ 3*DEL + 3*DUR + 3*DURP,"setPotential0()")
+
+  } else {
+    STIMON = 0
+    {setPotential0()}
+  }
+
+
+  // we've changed a parameter abruptly
+  // so we really should re-initialize cvode
+  if (cvode.active()) {
+    cvode.re_init()
+  } else {
+    fcurrent()
+  }
+}

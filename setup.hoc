@@ -1,0 +1,15 @@
+// Sub-File of main.hoc for generating the geometry and the stimulation protocol
+/* In this file, the file for geometry and stimulation are called for each i*/
+
+xopen("axonTemplate.hoc")
+// Generate the geometry
+xopen("geometry.hoc")
+
+// Generate the extracellular stimulation
+xopen("stimulation1.hoc")
+
+// Simulation parameters
+v_init = -72
+tstop = 15
+steps_per_ms = 20
+dt = 0.05
